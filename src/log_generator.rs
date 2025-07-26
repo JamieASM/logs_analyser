@@ -7,7 +7,7 @@ pub fn generate_log() -> Result<()> {
     let log = OpenOptions::new()
         .create(true)
         .write(true)
-        .open("logs.txt")?;
+        .open("log.txt")?;
 
     // create buffer
     let mut writer = BufWriter::new(log);

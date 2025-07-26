@@ -37,10 +37,26 @@ pub fn read_log(log: File) -> HashMap<String, i32> {
         increment(&mut data, "Total Lines".to_string());
     }
 
-    return HashMap::new();
+    data
+}
+
+pub fn get_most_common(data: &HashMap<String, i32>) -> (String, i32) {
+    if data.get("ERROR") > data.get("WARNING") && data.get("ERROR") > data.get("INFO") {
+        ("ERROR".to_string(), retrieve(data, "ERROR"))
+    }
+    else if data.get("WARNING") > data.get("INFO") {
+        ("WARNING".to_string(), retrieve(data, "WARNING"))
+    }
+    else {
+        ("INFO".to_string(), retrieve(data, "INFO"))
+    }
 }
 
 fn increment(data: &mut HashMap<String, i32>, key: String) {
     let count = data.get(&key).unwrap();
     data.insert(key, count + 1);
+}
+
+fn retrieve(data: &HashMap<String, i32>, key: &str) -> i32 {
+    data.get(key).unwrap().clone()
 }

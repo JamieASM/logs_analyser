@@ -2,13 +2,11 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-pub fn read_log(log: File) -> HashMap<String, i32> {
+pub fn read_log(log: File) -> (HashMap<String, i32>, i32) {
     // set up hashmap
+    let levels = vec!["ERROR", "INFO", "WARNING"];
     let mut data = HashMap::new();
-    data.insert("INFO".to_string(), 0);
-    data.insert("WARNING".to_string(), 0);
-    data.insert("ERROR".to_string(), 0);
-    data.insert("Total Lines".to_string(), 0);
+    let mut total_lines = 0;
 
     // set up reader
     let reader = BufReader::new(log);
@@ -19,44 +17,23 @@ pub fn read_log(log: File) -> HashMap<String, i32> {
             Ok(val) => val,
             Err(e) => {
                 println!("Error: {}", e);
-                return HashMap::new();
+                return (HashMap::new(), 0);
             }
         };
 
-        if line.contains("INFO") {
-            increment(&mut data, "INFO".to_string());
-        }
-        else if line.contains("WARNING") {
-            increment(&mut data, "WARNING".to_string());
-        }
-        else if line.contains("ERROR") {
-            increment(&mut data, "ERROR".to_string());
+        // decide which level type we have and increment
+        for level in &levels {
+            if line.contains(level) {
+                data
+                    .entry(level.to_string())
+                    .and_modify(|count| *count += 1)
+                    .or_insert(1);
+            }
         }
 
         // increment line count
-        increment(&mut data, "Total Lines".to_string());
+        total_lines += 1;
     }
 
-    data
-}
-
-pub fn get_most_common(data: &HashMap<String, i32>) -> (String, i32) {
-    if data.get("ERROR") > data.get("WARNING") && data.get("ERROR") > data.get("INFO") {
-        ("ERROR".to_string(), retrieve(data, "ERROR"))
-    }
-    else if data.get("WARNING") > data.get("INFO") {
-        ("WARNING".to_string(), retrieve(data, "WARNING"))
-    }
-    else {
-        ("INFO".to_string(), retrieve(data, "INFO"))
-    }
-}
-
-fn increment(data: &mut HashMap<String, i32>, key: String) {
-    let count = data.get(&key).unwrap();
-    data.insert(key, count + 1);
-}
-
-fn retrieve(data: &HashMap<String, i32>, key: &str) -> i32 {
-    data.get(key).unwrap().clone()
+    (data, total_lines)
 }
